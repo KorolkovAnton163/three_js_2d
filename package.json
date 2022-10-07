@@ -1,0 +1,30 @@
+{
+  "name": "three-js-d2",
+  "version": "1.0.0",
+  "description": "Three js 2d",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run build && npm run serve",
+    "build": "webpack",
+    "serve": "webpack serve"
+  },
+  "keywords": [
+    "three js 2d"
+  ],
+  "author": "Anton Korolkov",
+  "license": "ISC",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "ts-loader": "^8.1.0",
+    "typescript": "^4.2.3",
+    "webpack": "5.71.0",
+    "webpack-cli": "4.10.0",
+    "webpack-dev-server": "4.7.4"
+  },
+  "dependencies": {
+    "@types/dat.gui": "^0.7.7",
+    "@types/three": "^0.139.0",
+    "dat.gui": "^0.7.9",
+    "three": "^0.139.2"
+  }
+}
