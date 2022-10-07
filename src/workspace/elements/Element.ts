@@ -21,4 +21,8 @@ export class Element extends Geometry implements IElement {
     public select(): void {
         super.select();
     }
+
+    public deselect(): void {
+        super.deselect();
+    }
 }

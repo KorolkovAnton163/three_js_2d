@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
 export class Geometry {
+    public uuid: string;
+
     protected geometry: THREE.ShapeBufferGeometry;
 
     protected material: THREE.MeshBasicMaterial;
@@ -47,10 +49,16 @@ export class Geometry {
         this.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+
+        this.uuid = this.mesh.uuid;
     }
 
     protected select(): void {
-        //
+        this.material.color.set(0xff0000);
+    }
+
+    protected deselect(): void {
+        this.material.color.set(0xffffff);
     }
 
     public setPosition(x: number, y: number): void {

@@ -3,9 +3,10 @@ import { Scene } from './Scene';
 import { Camera } from './Camera';
 import { Renderer } from './Renderer';
 import { Element } from './elements/Element';
-import {IElement} from "./_shims/element";
+import { IElement } from "./_shims/element";
+import { Interaction } from "./Interaction";
 
-export class Workspace {
+export class Workspace extends Interaction {
     private container: HTMLElement;
 
     public scene: Scene;
@@ -14,7 +15,9 @@ export class Workspace {
 
     public renderer: Renderer;
 
-    private elements: IElement[] = [];
+    private elements: Record<string, IElement> = {};
+
+    private current: IElement | null = null;
 
     private moving = false;
 
@@ -25,7 +28,11 @@ export class Workspace {
 
     private zoom = 1;
 
+    protected key: string | null = null;
+
     constructor() {
+        super();
+
         this.container = document.querySelector('.container');
 
         this.scene = new Scene();
@@ -38,10 +45,45 @@ export class Workspace {
             this.renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        window.addEventListener('keydown', (e: KeyboardEvent) => {
+            this.key = e.code;
+        });
+
+        window.addEventListener('keyup', () => {
+           this.key = null;
+        });
+
         window.addEventListener('mousedown', (e: MouseEvent) => {
-            this.moving = true;
-            this.offset.x = e.pageX;
-            this.offset.y = e.pageY;
+            if (this.key !== null && this.key === 'Space') {
+                this.moving = true;
+                this.offset.x = e.pageX;
+                this.offset.y = e.pageY;
+
+                return;
+            }
+
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2(
+                (e.clientX / window.innerWidth) * 2 - 1,
+                -(e.clientY / window.innerHeight) * 2 + 1,
+            );
+
+            raycaster.setFromCamera(mouse, this.camera.getCamera());
+
+            const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+            if (intersects.length !== 0 && this.current === null) {
+                this.current = this.elements[intersects[0].object.uuid] ?? null;
+
+                return;
+            }
+
+            if (intersects.length === 0 && this.current !== null) {
+                this.current.deselect();
+                this.current = null;
+
+                return;
+            }
         });
 
         window.addEventListener('mousemove', (e: MouseEvent) => {
@@ -59,22 +101,17 @@ export class Workspace {
         });
 
         window.addEventListener('mouseup', (e: MouseEvent) => {
-            // const current = this.elements.filter((element: IElement) => {
-            //     return e.pageX > element.x && e.pageX < element.x + element.w
-            //         && e.pageY > element.y && e.pageY < element.y + element.h;
-            // });
+            if (this.moving) {
+                this.moving = false;
+                this.offset.x = 0;
+                this.offset.y = 0;
 
-            const current = this.elements[0];
-
-            current.select();
-
-            if (!this.moving) {
                 return;
             }
 
-            this.moving = false;
-            this.offset.x = 0;
-            this.offset.y = 0;
+            if (this.current !== null) {
+                this.current.select();
+            }
         });
 
         window.addEventListener('wheel', (e: WheelEvent) => {        
@@ -92,17 +129,12 @@ export class Workspace {
         for (let i = 0; i < 1; i++) {
             const element = new Element();
 
-            // element.setPosition(
-            //     Math.floor(Math.random() * 5000),
-            //     -Math.floor(Math.random() * 5000),
-            // );
-
             element.setPosition(
                 window.innerWidth / 2,
                 -window.innerHeight / 2,
             );
 
-            this.elements.push(element);
+            this.elements[element.uuid] = element;
 
             this.scene.add(element.object);
         }
