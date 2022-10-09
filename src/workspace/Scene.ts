@@ -9,7 +9,6 @@ export class Scene {
 
     constructor() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0xa8def0);
     }
 
     public getScene(): THREE.Scene {

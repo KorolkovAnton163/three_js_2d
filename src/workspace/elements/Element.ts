@@ -25,4 +25,8 @@ export class Element extends Geometry implements IElement {
     public deselect(): void {
         super.deselect();
     }
+
+    public setPosition(x: number, y: number): void {
+        super.setPosition(x, y);
+    }
 }

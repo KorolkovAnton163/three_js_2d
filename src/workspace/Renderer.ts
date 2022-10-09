@@ -6,7 +6,8 @@ export class Renderer {
     private readonly renderer: THREE.WebGLRenderer;
 
     constructor() {
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setClearColor(0x000000, 0)
     }
 
     public getRenderer(): THREE.WebGLRenderer {

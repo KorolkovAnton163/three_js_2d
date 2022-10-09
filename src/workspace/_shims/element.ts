@@ -10,4 +10,5 @@ export interface IElement {
 
     select(): void;
     deselect(): void;
+    setPosition(x: number, y: number): void;
 }

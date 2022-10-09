@@ -43,7 +43,7 @@ export class Geometry {
             new THREE.Vector2(2, 4),
             new THREE.Vector2(4, 4),
             new THREE.Vector2(4, 2),
-        ])
+        ]);
 
         this.geometry = new THREE.ShapeBufferGeometry([this.shape, test]);
         this.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
