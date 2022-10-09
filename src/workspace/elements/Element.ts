@@ -1,13 +1,28 @@
-import { Geometry } from './Geomentry';
+import * as THREE from 'three';
 import { IElement } from "../_shims/element";
+import { ShaderGeometry } from './ShaderGeometry';
 
-export class Element extends Geometry implements IElement {
+export class Element implements IElement {
+    public uuid: string;
+
+    protected group: THREE.Group;
+
+    protected width = 200;
+
+    protected height = 200;
+
+    protected geomenty: ShaderGeometry;
+
+    public get object(): THREE.Object3D {
+        return this.group;
+    }
+
     public get x(): number {
-        return this.mesh.position.x;
+        return this.group.position.x;
     }
 
     public get y(): number {
-        return this.mesh.position.y;
+        return this.group.position.y;
     }
 
     public get w(): number {
@@ -18,15 +33,26 @@ export class Element extends Geometry implements IElement {
         return this.height;
     }
 
+    constructor() {
+        this.geomenty = new ShaderGeometry();
+
+        this.group = new THREE.Group();
+
+        this.group.add(this.geomenty.object);
+
+        this.uuid = this.group.uuid;
+    }
+
     public select(): void {
-        super.select();
+        this.geomenty.select();
     }
 
     public deselect(): void {
-        super.deselect();
+        this.geomenty.deselect();
     }
 
     public setPosition(x: number, y: number): void {
-        super.setPosition(x, y);
+        this.group.position.x = x;
+        this.group.position.y = y;
     }
 }

@@ -6,7 +6,7 @@ export interface IElement {
     y: number;
     w: number;
     h: number;
-    object: THREE.Mesh;
+    object: THREE.Object3D;
 
     select(): void;
     deselect(): void;

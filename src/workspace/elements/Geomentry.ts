@@ -38,14 +38,7 @@ export class Geometry {
         this.shape.lineTo(this.gx + this.radius, this.gy);
         this.shape.quadraticCurveTo(this.gx, this.gy, this.gx, this.gy + this.radius);
 
-        const test = new THREE.Shape([
-            new THREE.Vector2(2, 2),
-            new THREE.Vector2(2, 4),
-            new THREE.Vector2(4, 4),
-            new THREE.Vector2(4, 2),
-        ]);
-
-        this.geometry = new THREE.ShapeBufferGeometry([this.shape, test]);
+        this.geometry = new THREE.ShapeBufferGeometry(this.shape);
         this.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
@@ -53,11 +46,11 @@ export class Geometry {
         this.uuid = this.mesh.uuid;
     }
 
-    protected select(): void {
+    public select(): void {
         this.material.color.set(0xff0000);
     }
 
-    protected deselect(): void {
+    public deselect(): void {
         this.material.color.set(0xffffff);
     }
 

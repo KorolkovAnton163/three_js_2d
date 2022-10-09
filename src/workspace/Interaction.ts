@@ -92,15 +92,18 @@ export abstract class Interaction extends Core {
         }
 
         const intersects = this.getintersectObjects({ x: e.clientX, y: e.clientY });
+        
 
         if (intersects.length !== 0) {
-            const uuid = intersects[intersects.length - 1].object.uuid;
+            const object = intersects[intersects.length - 1].object;
+            const uuid = object.parent ? object.parent.uuid : object.uuid;
+            
 
             if (this.current !== null && this.current.uuid !== uuid) {
                 this.current.deselect();
             }
 
-            this.current = this.elements[intersects[intersects.length - 1].object.uuid] ?? null;
+            this.current = this.elements[uuid] ?? null;
 
             return;
         }

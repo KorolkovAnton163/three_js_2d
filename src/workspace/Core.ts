@@ -45,12 +45,12 @@ export abstract class Core {
 
         this.container.appendChild(this.renderer.getElement());
 
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 10000; i++) {
             const element = new Element();
 
             element.setPosition(
-                Math.random() * 1000,
-                -Math.random() * 1000,
+                Math.random() * 20000,
+                -Math.random() * 20000,
             );
 
             this.elements[element.uuid] = element;

@@ -25,8 +25,8 @@ export class ShaderGeometry {
             borderRadius: { value: 5 },
             borderWidth: { value: 0 },
             size: { value: size },
-            color: { value: new THREE.Color( '#ffffff' ) },
-            borderColor: { value: new THREE.Color( '#000000' ) }
+            color: { value: new THREE.Color(0xffffff) },
+            borderColor: { value: new THREE.Color(0x000000) }
         }
 
         this.geometry = new THREE.PlaneGeometry(this.width, this.height);
@@ -40,8 +40,14 @@ export class ShaderGeometry {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
     }
 
-    protected select(): void {
+    public select(): void {
         this.material.uniforms.borderWidth.value = 2;
+
+        this.material.uniformsNeedUpdate = true;
+    }
+
+    public deselect(): void {
+        this.material.uniforms.borderWidth.value = 0;
 
         this.material.uniformsNeedUpdate = true;
     }
