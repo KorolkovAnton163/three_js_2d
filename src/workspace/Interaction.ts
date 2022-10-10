@@ -1,6 +1,7 @@
 import { Core } from "./Core";
 import MathHelper from "./helpers/MathHelper";
 import MouseHelper from "./helpers/MouseHelper";
+import { ResizePosition } from "./_shims/element";
 
 export abstract class Interaction extends Core {
     protected abstract drawGrid(): void;
@@ -16,6 +17,8 @@ export abstract class Interaction extends Core {
     private moving = false;
 
     private draggable = false;
+
+    private resizable = false;
 
     private offset = {
         x: 0,
@@ -49,7 +52,7 @@ export abstract class Interaction extends Core {
 
         window.addEventListener('wheel', (e: WheelEvent) => {        
             this.onWheel(e);
-        });
+        }, { passive: false });
     }
 
     protected unbind(): void {
@@ -91,8 +94,17 @@ export abstract class Interaction extends Core {
             return;
         }
 
-        const intersects = this.getintersectObjects({ x: e.clientX, y: e.clientY });
+        const intersects = this.getIntersectObjects({ x: e.clientX, y: e.clientY });
         
+        if (this.current !== null && this.current.isSelected && intersects.length !== 0) {
+            const object = intersects[intersects.length - 1].object;
+
+            if (object.name === 'resize') {
+                this.resizable = true;
+
+                return;
+            }
+        }
 
         if (intersects.length !== 0) {
             const object = intersects[intersects.length - 1].object;
@@ -117,11 +129,45 @@ export abstract class Interaction extends Core {
     }
 
     private onMouseMove(e: MouseEvent): void {
+        const intersects = this.getIntersectObjects({ x: e.clientX, y: e.clientY });
+
+        if (this.current && this.current.isSelected && e.buttons === 0) {
+            if (intersects.length !== 0) {
+                const object = intersects[intersects.length - 1].object;
+
+                if (object.name === 'resize') {
+                    this.current.showResize(object.userData.position as ResizePosition);
+                } else {
+                    this.current.showResize(ResizePosition.bottomRight);
+                }
+            } else {
+                this.current.showResize(ResizePosition.bottomRight);
+            }
+
+            return;
+        }
+
+        if (!MouseHelper.isLeftButtonPressed(e)) {
+            return;
+        }
+
         if (this.onWorkspaceMovingMove(e)) {
             return;
         }
 
-        if (this.current !== null && !this.draggable && MouseHelper.isLeftButtonPressed(e)) {
+        if (this.current !== null && this.resizable) {
+            this.current.resize(
+                this.current.w + (e.pageX - this.offset.x),
+                this.current.h + (e.pageY - this.offset.y),
+            );
+
+            this.offset.x = e.pageX;
+            this.offset.y = e.pageY;
+
+            return;
+        }
+
+        if (this.current !== null && !this.draggable) {
             this.draggable = true;
 
             this.container.classList.add('moving');
@@ -158,7 +204,6 @@ export abstract class Interaction extends Core {
             this.current.setPosition(point.x, point.y);
 
             this.draggable = false;
-            this.current = null;
 
             return;
         }
@@ -179,23 +224,17 @@ export abstract class Interaction extends Core {
     }
 
     private onWheel(e: WheelEvent): void {
-        this.zoom += (e.deltaY > 0 ? -0.1 : 0.1);
-        
+        e.preventDefault();
+        e.stopPropagation();
 
-        if (this.zoom >= 4) {
-            this.zoom = 4;
+        this.left -= e.deltaX;
+        this.top -= e.deltaY;
 
-            return;
-        }
+        this.camera.setPosition(
+            this.camera.x + e.deltaX / this.zoom,
+            this.camera.y - e.deltaY / this.zoom,
+        );
 
-        if (this.zoom <= 0.2) {
-            this.zoom = 0.2;
-
-            return;
-        }
-        
-
-        this.camera.setZoom(this.zoom);
         this.drawGrid();
     }
 
@@ -242,5 +281,11 @@ export abstract class Interaction extends Core {
         this.offset.y = 0;
 
         return true;
+    }
+
+    protected onZoom(zoom: number): void {
+        this.zoom = zoom;
+        this.camera.setZoom(this.zoom);
+        this.drawGrid();
     }
 }

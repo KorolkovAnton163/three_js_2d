@@ -8,17 +8,18 @@ export class ShaderGeometry {
 
     protected mesh: THREE.Mesh;
 
-    protected shape: THREE.Shape;
+    protected width: number;
 
-    protected width = 200;
-
-    protected height = 200;
+    protected height: number;
 
     public get object(): THREE.Mesh {
         return this.mesh;
     }
 
-    constructor() {
+    constructor(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+
         const size = new THREE.Vector2(this.width, this.height);
 
         const uniforms = {
@@ -52,8 +53,9 @@ export class ShaderGeometry {
         this.material.uniformsNeedUpdate = true;
     }
 
-    public setPosition(x: number, y: number): void {
-        this.mesh.position.x = x;
-        this.mesh.position.y = y;
+    //TODO: implement resize logic
+    public resize(w: number, h: number): void {
+        this.width = w;
+        this.height = h;
     }
 }
