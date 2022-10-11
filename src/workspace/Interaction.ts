@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { Core } from "./Core";
 import MathHelper from "./helpers/MathHelper";
 import MouseHelper from "./helpers/MouseHelper";
@@ -96,34 +97,15 @@ export abstract class Interaction extends Core {
 
         const intersects = this.getIntersectObjects({ x: e.clientX, y: e.clientY });
         
-        if (this.current !== null && this.current.isSelected && intersects.length !== 0) {
-            const object = intersects[intersects.length - 1].object;
-
-            if (object.name === 'resize') {
-                this.resizable = true;
-
-                return;
-            }
-        }
-
-        if (intersects.length !== 0) {
-            const object = intersects[intersects.length - 1].object;
-            const uuid = object.parent ? object.parent.uuid : object.uuid;
-            
-
-            if (this.current !== null && this.current.uuid !== uuid) {
-                this.current.deselect();
-            }
-
-            this.current = this.elements[uuid] ?? null;
-
+        if (this.onCurrentResizeStart(intersects)) {
             return;
         }
 
-        if (intersects.length === 0 && this.current !== null) {
-            this.current.deselect();
-            this.current = null;
+        if (this.onCurrentSet(intersects)) {
+            return;
+        }
 
+        if (this.onCurrentReset(intersects)) {
             return;
         }
     }
@@ -131,19 +113,7 @@ export abstract class Interaction extends Core {
     private onMouseMove(e: MouseEvent): void {
         const intersects = this.getIntersectObjects({ x: e.clientX, y: e.clientY });
 
-        if (this.current && this.current.isSelected && e.buttons === 0) {
-            if (intersects.length !== 0) {
-                const object = intersects[intersects.length - 1].object;
-
-                if (object.name === 'resize') {
-                    this.current.showResize(object.userData.position as ResizePosition);
-                } else {
-                    this.current.showResize(ResizePosition.bottomRight);
-                }
-            } else {
-                this.current.showResize(ResizePosition.bottomRight);
-            }
-
+        if (this.onCurrentOver(intersects, e)) {
             return;
         }
 
@@ -155,35 +125,15 @@ export abstract class Interaction extends Core {
             return;
         }
 
-        if (this.current !== null && this.resizable) {
-            this.current.resize(
-                this.current.w + (e.pageX - this.offset.x),
-                this.current.h + (e.pageY - this.offset.y),
-            );
-
-            this.offset.x = e.pageX;
-            this.offset.y = e.pageY;
-
+        if (this.onCurrentResizeMove(e)) {
             return;
         }
 
-        if (this.current !== null && !this.draggable) {
-            this.draggable = true;
-
-            this.container.classList.add('moving');
-
+        if (this.onCurrentMovingStart()) {
             return;
         }
 
-        if (this.current !== null && this.draggable) {
-            this.current.setPosition(
-                this.current.x + (e.pageX - this.offset.x) / this.zoom, 
-                this.current.y - (e.pageY - this.offset.y) / this.zoom, 
-            );
-
-            this.offset.x = e.pageX;
-            this.offset.y = e.pageY;
-
+        if (this.onCurrentMovingMove(e)) {
             return;
         }
     }
@@ -195,22 +145,15 @@ export abstract class Interaction extends Core {
             return;
         }
 
-        if (this.draggable && this.current !== null) {
-            const point = MathHelper.alignPointToGrid({
-                x: this.current.x,
-                y: this.current.y,
-            });
-
-            this.current.setPosition(point.x, point.y);
-
-            this.draggable = false;
-
+        if (this.onCurrentResizeEnd()) {
             return;
         }
 
-        if (this.current !== null) {
-            this.current.select();
+        if (this.onCurrentMovingEnd()) {
+            return;
+        }
 
+        if (this.onCurrentSelect()) {
             return;
         }
     }
@@ -279,6 +222,145 @@ export abstract class Interaction extends Core {
         this.moving = false;
         this.offset.x = 0;
         this.offset.y = 0;
+
+        return true;
+    }
+
+    private onCurrentSet(intersects: THREE.Intersection<THREE.Object3D>[]): boolean {
+        if (intersects.length === 0) {
+            return false;
+        }
+
+        const object = intersects[intersects.length - 1].object;
+        const uuid = object.parent ? object.parent.uuid : object.uuid;
+
+        if (this.current !== null && this.current.uuid !== uuid) {
+            this.current.deselect();
+        }
+
+        this.current = this.elements[uuid] ?? null;
+
+        return true;
+    }
+
+    private onCurrentReset(intersects: THREE.Intersection<THREE.Object3D>[]): boolean {
+        if (intersects.length !== 0 || this.current === null) {
+            return false;
+        }
+
+        this.current.deselect();
+        this.current = null;
+
+        return true;
+    }
+
+    private onCurrentResizeStart(intersects: THREE.Intersection<THREE.Object3D>[]): boolean {
+        if (this.current === null || intersects.length === 0) {
+            return false;
+        }
+
+        if (!this.current.isSelected) {
+            return false;
+        }
+
+        const object = intersects[intersects.length - 1].object;
+
+        if (object.name !== 'resize') {
+            return false;
+        }
+
+        this.resizable = true;
+
+        return true;
+    }
+
+    private onCurrentResizeMove(e: MouseEvent): boolean {
+        if (this.current === null || !this.resizable) {
+            return false;
+        }
+
+        this.current.resize(
+            this.current.w + (e.pageX - this.offset.x),
+            this.current.h + (e.pageY - this.offset.y),
+        );
+
+        this.offset.x = e.pageX;
+        this.offset.y = e.pageY;
+
+        return true;
+    }
+
+    private onCurrentResizeEnd(): boolean {
+        if (this.current === null || !this.resizable) {
+            return false;
+        }
+
+        this.resizable = false;
+
+        return true;
+    }
+
+    private onCurrentMovingStart(): boolean {
+        if (this.current === null || this.draggable) {
+            return false;
+        }
+
+        this.draggable = true;
+
+        this.container.classList.add('moving');
+
+        return true;
+    }
+
+    private onCurrentMovingMove(e: MouseEvent): boolean {
+        if (this.current === null || !this.draggable) {
+            return false;
+        }
+
+        this.current.move(
+            this.current.x + (e.pageX - this.offset.x) / this.zoom,
+            this.current.y - (e.pageY - this.offset.y) / this.zoom,
+        );
+
+        this.offset.x = e.pageX;
+        this.offset.y = e.pageY;
+
+        return true;
+    }
+
+    private onCurrentMovingEnd(): boolean {
+        if (this.current === null || !this.draggable) {
+            return false
+        }
+
+        const point = MathHelper.alignPointToGrid({
+            x: this.current.x,
+            y: this.current.y,
+        });
+
+        this.current.move(point.x, point.y);
+
+        this.draggable = false;
+
+        return true;
+    }
+
+    private onCurrentSelect(): boolean {
+        if (this.current === null) {
+            return false;
+        }
+
+        this.current.select();
+
+        return true;
+    }
+
+    private onCurrentOver(intersects: THREE.Intersection<THREE.Object3D>[], e: MouseEvent): boolean {
+        if (this.current === null || !this.current.isSelected || e.buttons !== 0) {
+            return false;
+        }
+
+        this.current.over(intersects);
 
         return true;
     }

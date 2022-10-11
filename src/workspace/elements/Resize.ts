@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { ResizePosition } from "../_shims/element";
-import { SVGLoader, SVGResult, SVGResultPaths } from "three/examples/jsm/loaders/SVGLoader";
+import {ResizePosition} from "../_shims/element";
+import {SVGLoader, SVGResult, SVGResultPaths} from "three/examples/jsm/loaders/SVGLoader";
 
 export class Resize {
     private readonly position: ResizePosition;
@@ -55,28 +55,44 @@ export class Resize {
     private setPosition(): void {
         switch (this.position) {
             case ResizePosition.topLeft:
-                this.group.rotation.z = 90 * Math.PI / 180;
-                this.group.position.x = -this.size.w / 3 - this.width / 2;
+                this.group.position.x = -this.size.w / 2 - this.width / 2;
                 this.group.position.y = this.size.h / 2 - this.width / 2 ;
                 break;
             case ResizePosition.topRight:
-                this.group.rotation.z = 0;
                 this.group.position.x = this.size.w / 2 - this.width / 2;
                 this.group.position.y = this.size.h / 2 - this.height / 2;
                 break;
             case ResizePosition.bottomLeft:
-                this.group.rotation.z = 180 * Math.PI / 180;
-                this.group.position.x = -this.size.w / 3 - this.width / 2;
-                this.group.position.y = -this.size.h / 3 - this.height / 2;
+                this.group.position.x = -this.size.w / 2 - this.width / 2;
+                this.group.position.y = -this.size.h / 2 - this.height / 2;
                 break;
             case ResizePosition.bottomRight:
-                this.group.rotation.z = -90 * Math.PI / 180;
                 this.group.position.x = this.size.w / 2 - this.width / 2;
-                this.group.position.y = -this.size.h / 3 - this.height / 2;
+                this.group.position.y = -this.size.h / 2 - this.height / 2;
                 break;
             default:
                 this.group.position.x = 0;
                 this.group.position.y = 0;
+        }
+    }
+
+    private setSvgRotation(mesh: THREE.Mesh): void {
+        switch (this.position) {
+            case ResizePosition.topLeft:
+                mesh.rotation.z = 90 * Math.PI / 180;
+                break;
+            case ResizePosition.topRight:
+                mesh.rotation.z = 0;
+                break;
+            case ResizePosition.bottomLeft:
+                mesh.rotation.z = 180 * Math.PI / 180;
+                break;
+            case ResizePosition.bottomRight:
+                mesh.rotation.z = -90 * Math.PI / 180;
+                break;
+            default:
+                mesh.rotation.z = 0;
+                break;
         }
     }
 
@@ -101,8 +117,10 @@ export class Resize {
                         position: this.position
                     };
 
-                    mesh.position.x = this.width / 2.5;
-                    mesh.position.y = this.height / 2.5;
+                    this.setSvgRotation(mesh);
+
+                    mesh.position.x = this.width / 2;
+                    mesh.position.y = this.height / 2;
 
                     this.group.add(mesh);
                 });

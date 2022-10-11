@@ -41,6 +41,16 @@ export class ShaderGeometry {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
     }
 
+    public setTexture(path: string): void {
+        const texture = new THREE.TextureLoader().load(path);
+
+        this.material.uniforms.textures = { value: texture };
+
+        this.material.fragmentShader = GeometryHelper.FragmentTextureShader();
+
+        this.material.uniformsNeedUpdate = true;
+    }
+
     public select(): void {
         this.material.uniforms.borderWidth.value = 2;
 

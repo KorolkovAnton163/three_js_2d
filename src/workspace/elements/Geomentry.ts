@@ -11,9 +11,9 @@ export class Geometry {
 
     protected shape: THREE.Shape;
 
-    protected width = 200;
+    protected width: number;
 
-    protected height = 200;
+    protected height: number;
 
     private gx = 1;
 
@@ -25,7 +25,10 @@ export class Geometry {
         return this.mesh;
     }
 
-    constructor() {
+    constructor(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+
         this.shape = new THREE.Shape();
 
         this.shape.moveTo(this.gx, this.gy + this.radius);
@@ -43,6 +46,8 @@ export class Geometry {
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
+        this.setPosition(-this.width / 2, -this.height / 2);
+
         this.uuid = this.mesh.uuid;
     }
 
@@ -57,5 +62,10 @@ export class Geometry {
     public setPosition(x: number, y: number): void {
         this.mesh.position.x = x;
         this.mesh.position.y = y;
+    }
+
+    public resize(w: number, h: number): void {
+        this.width = w;
+        this.height = h;
     }
 }

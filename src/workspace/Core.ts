@@ -2,8 +2,6 @@ import * as THREE from 'three';
 import { Scene } from './Scene';
 import { Camera } from './Camera';
 import { Renderer } from './Renderer';
-import { Element } from './elements/Element';
-import { FileElement } from "./elements/file/FileElement";
 import { IElement } from "./_shims/element";
 
 export abstract class Core {
@@ -45,26 +43,6 @@ export abstract class Core {
         this.renderer.enableShadowMap(true);
 
         this.container.appendChild(this.renderer.getElement());
-
-        for (let i = 0; i < 1; i++) {
-            const element = new Element(240, 240);
-
-            element.setPosition(300, -320);
-
-            this.elements[element.uuid] = element;
-
-            this.scene.add(element.object);
-        }
-
-        for (let i = 0; i < 1; i++) {
-            const file = new FileElement(240, 360);
-
-            file.setPosition(680, -400);
-
-            this.elements[file.uuid] = file;
-
-            this.scene.add(file.object);
-        }
     }
 
     public loop(): void {

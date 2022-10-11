@@ -2,17 +2,16 @@ import * as THREE from 'three';
 import { IElement, ResizePosition } from "../_shims/element";
 import { ShaderGeometry } from './ShaderGeometry';
 import { Resize } from "./Resize";
+import ElementInterface from "../_shims/models/_element";
 
 export class Element implements IElement {
     public uuid: string;
 
+    protected element: ElementInterface;
+
     protected selected = false;
 
     protected group: THREE.Group;
-
-    protected width: number;
-
-    protected height: number;
 
     protected geometry: ShaderGeometry;
 
@@ -37,22 +36,23 @@ export class Element implements IElement {
     }
 
     public get w(): number {
-        return this.width;
+        return this.element.w;
     }
 
     public get h(): number {
-        return this.height;
+        return this.element.h;
     }
 
-    constructor(width: number, height: number) {
-        this.width = width;
-        this.height = height;
+    constructor(element: ElementInterface) {
+        this.element = element;
 
-        this.geometry = new ShaderGeometry(this.width, this.height);
+        this.geometry = new ShaderGeometry(this.element.w, this.element.h);
 
         this.group = new THREE.Group();
 
         this.group.name = 'element';
+        this.group.position.x = element.x;
+        this.group.position.y = element.y;
 
         this.group.add(this.geometry.object);
 
@@ -96,7 +96,7 @@ export class Element implements IElement {
         }
     }
 
-    public showResize(position: ResizePosition): void {
+    private showResize(position: ResizePosition): void {
         if (this.resizes === null || this.currentResizePosition === position) {
             return;
         }
@@ -112,13 +112,24 @@ export class Element implements IElement {
 
     public resize(w: number, h: number): void {
         this.geometry.resize(w, h);
-
-        this.width = w;
-        this.height = h;
     }
 
-    public setPosition(x: number, y: number): void {
+    public move(x: number, y: number): void {
         this.group.position.x = x;
         this.group.position.y = y;
+    }
+
+    public over(intersects: THREE.Intersection<THREE.Object3D>[]): void {
+        if (intersects.length !== 0) {
+            const object = intersects[intersects.length - 1].object;
+
+            if (object.name === 'resize') {
+                this.showResize(object.userData.position as ResizePosition);
+            } else {
+                this.showResize(ResizePosition.bottomRight);
+            }
+        } else {
+            this.showResize(ResizePosition.bottomRight);
+        }
     }
 }
