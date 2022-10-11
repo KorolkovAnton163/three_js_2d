@@ -30,7 +30,7 @@ export class ShaderGeometry {
             borderColor: { value: new THREE.Color(0x000000) }
         }
 
-        this.geometry = new THREE.PlaneGeometry(this.width, this.height);
+        this.geometry = new THREE.PlaneGeometry(1, 1);
 
         this.material = new THREE.ShaderMaterial({
             uniforms: uniforms,
@@ -39,6 +39,8 @@ export class ShaderGeometry {
         });
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+
+        this.mesh.scale.set(this.width, this.height, 1);
     }
 
     public setTexture(path: string): void {
@@ -63,9 +65,14 @@ export class ShaderGeometry {
         this.material.uniformsNeedUpdate = true;
     }
 
-    //TODO: implement resize logic
     public resize(w: number, h: number): void {
         this.width = w;
         this.height = h;
+
+        this.mesh.scale.set(this.width, this.height, 1);
+
+        this.material.uniforms.size.value = new THREE.Vector2(this.width, this.height);
+
+        this.material.uniformsNeedUpdate = true;
     }
 }

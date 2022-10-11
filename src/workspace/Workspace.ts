@@ -22,7 +22,7 @@ export class Workspace extends Interaction {
             text: null,
         },
         data: {
-            path: 'https://storage.dev.flikto.com:9090/testing/1/2/aee8b4bb-3d1c-416f-ae49-6a8177cf67da.min.jpg',
+            path: 'https://storage.dev.flikto.com:9090/testing/1/2/12569c39-2ca9-4723-8c07-bf0e658f19ad.min.jpg',
         } as FileElementData,
     } as FileElementInterface,
     {
@@ -39,7 +39,7 @@ export class Workspace extends Interaction {
             text: null,
         },
         data: {
-            path: 'https://storage.dev.flikto.com:9090/testing/1/2/d74b7992-345e-4f55-a25e-b2f93ca4eec7.min.jpg',
+            path: 'https://storage.dev.flikto.com:9090/testing/1/2/246f5ad6-19f1-43bb-a2f3-7381a168fbb9.min.jpg',
         } as FileElementData,
     } as FileElementInterface,];
 

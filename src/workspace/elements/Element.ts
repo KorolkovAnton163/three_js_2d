@@ -17,7 +17,14 @@ export class Element implements IElement {
 
     protected resizes: Record<ResizePosition, Resize> | null = null;
 
+    protected aspectRation = false;
+
     protected currentResizePosition = ResizePosition.bottomRight;
+
+    protected min = {
+        w: 0,
+        h: 0,
+    }
 
     public get object(): THREE.Object3D {
         return this.group;
@@ -96,22 +103,23 @@ export class Element implements IElement {
         }
     }
 
-    private showResize(position: ResizePosition): void {
-        if (this.resizes === null || this.currentResizePosition === position) {
-            return;
+    public resize(x: number, y: number, position: ResizePosition): void {
+        const rect = this.aspectRation
+            ? this.resizeAspectRationLocked(x, y, position)
+            : this.resizeAspectRationFree(x, y, position);
+
+        this.group.position.x = rect.x;
+        this.group.position.y = rect.y;
+        this.geometry.resize(rect.w, rect.h);
+
+        if (this.resizes !== null) {
+            Object.values(this.resizes).forEach((r: Resize) => {
+                r.move(rect.w, rect.h);
+            });
         }
 
-        this.currentResizePosition = position;
-
-        Object.values(this.resizes).forEach((r: Resize) => {
-            r.hide();
-        });
-
-        this.resizes[position].show();
-    }
-
-    public resize(w: number, h: number): void {
-        this.geometry.resize(w, h);
+        this.element.w = rect.w;
+        this.element.h = rect.h;
     }
 
     public move(x: number, y: number): void {
@@ -130,6 +138,67 @@ export class Element implements IElement {
             }
         } else {
             this.showResize(ResizePosition.bottomRight);
+        }
+    }
+
+    private showResize(position: ResizePosition): void {
+        if (this.resizes === null || this.currentResizePosition === position) {
+            return;
+        }
+
+        this.currentResizePosition = position;
+
+        Object.values(this.resizes).forEach((r: Resize) => {
+            r.hide();
+        });
+
+        this.resizes[position].show();
+    }
+
+    private resizeAspectRationLocked(x: number, y: number, position: ResizePosition): { w: number, h: number, x: number; y: number } {
+        const ratio = this.w / this.h;
+        const width = this.w + x > this.min.w ? this.w + x : this.min.w;
+
+        switch (position) {
+            case ResizePosition.topLeft:
+                return {
+                    w: this.w,
+                    h: this.h,
+                    x: this.x,
+                    y: this.y,
+                };
+            case ResizePosition.topRight:
+                return {
+                    w: this.w,
+                    h: this.h,
+                    x: this.x,
+                    y: this.y,
+                };
+            case ResizePosition.bottomLeft:
+                return {
+                    w: this.w,
+                    h: this.h,
+                    x: this.x,
+                    y: this.y,
+                };
+            case ResizePosition.bottomRight:
+                return {
+                    w: width,
+                    h: width / ratio,
+                    x: this.x,
+                    y: this.y,
+                }
+            default:
+                throw new Error('Unexpected resize position');
+        }
+    }
+
+    private resizeAspectRationFree(x: number, y: number, position: ResizePosition): { w: number, h: number, x: number; y: number } {
+        return {
+            w: this.w,
+            h: this.h,
+            x: this.x,
+            y: this.y,
         }
     }
 }

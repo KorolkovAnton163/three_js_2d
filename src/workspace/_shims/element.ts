@@ -19,6 +19,6 @@ export interface IElement {
     select(): void;
     deselect(): void;
     move(x: number, y: number): void;
-    resize(w: number, h: number): void;
+    resize(x: number, y: number, position: ResizePosition): void;
     over(intersects: THREE.Intersection<THREE.Object3D>[]): void;
 }

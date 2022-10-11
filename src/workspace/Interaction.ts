@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Core } from "./Core";
+import {Core} from "./Core";
 import MathHelper from "./helpers/MathHelper";
 import MouseHelper from "./helpers/MouseHelper";
-import { ResizePosition } from "./_shims/element";
+import {ResizePosition} from "./_shims/element";
 
 export abstract class Interaction extends Core {
     protected abstract drawGrid(): void;
@@ -20,6 +20,8 @@ export abstract class Interaction extends Core {
     private draggable = false;
 
     private resizable = false;
+
+    private resizablePosition: ResizePosition = ResizePosition.bottomRight;
 
     private offset = {
         x: 0,
@@ -271,7 +273,10 @@ export abstract class Interaction extends Core {
             return false;
         }
 
+        this.resizablePosition = object.userData.position as ResizePosition;
         this.resizable = true;
+
+        this.container.classList.add(this.resizablePosition);
 
         return true;
     }
@@ -282,8 +287,9 @@ export abstract class Interaction extends Core {
         }
 
         this.current.resize(
-            this.current.w + (e.pageX - this.offset.x),
-            this.current.h + (e.pageY - this.offset.y),
+            e.pageX - this.offset.x,
+            e.pageY - this.offset.y,
+            this.resizablePosition
         );
 
         this.offset.x = e.pageX;
@@ -297,7 +303,9 @@ export abstract class Interaction extends Core {
             return false;
         }
 
+        this.container.classList.remove(this.resizablePosition);
         this.resizable = false;
+        this.resizablePosition = ResizePosition.bottomRight;
 
         return true;
     }

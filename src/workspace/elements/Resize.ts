@@ -134,6 +134,13 @@ export class Resize {
         this.group.visible = false;
     }
 
+    public move(w: number, h: number): void {
+        this.size.w = w;
+        this.size.h = h;
+
+        this.setPosition();
+    }
+
     public dispose(): void {
         // this.geometry.dispose();
         // this.material.dispose();
