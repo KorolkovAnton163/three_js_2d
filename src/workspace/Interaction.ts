@@ -139,6 +139,8 @@ export abstract class Interaction extends Core {
     }
 
     private onMouseUp(e: MouseEvent): void {
+        this.offset.x = 0;
+        this.offset.y = 0;
         this.container.classList.remove('moving');
 
         if (this.onWorkspaceMovingEnd()) {
