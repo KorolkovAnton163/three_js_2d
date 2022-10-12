@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {Core} from "./Core";
 import MathHelper from "./helpers/MathHelper";
 import MouseHelper from "./helpers/MouseHelper";
-import {ResizePosition} from "./_shims/element";
+import {IElement, ResizePosition} from "./_shims/element";
 
 export abstract class Interaction extends Core {
     protected abstract drawGrid(): void;
@@ -22,6 +22,10 @@ export abstract class Interaction extends Core {
     private resizable = false;
 
     private resizablePosition: ResizePosition = ResizePosition.bottomRight;
+
+    protected current: IElement | null = null;
+
+    protected selection: IElement[] = [];
 
     private offset = {
         x: 0,
@@ -103,7 +107,7 @@ export abstract class Interaction extends Core {
             return;
         }
 
-        if (this.onCurrentSet(intersects)) {
+        if (this.onCurrentSet(intersects, e)) {
             return;
         }
 
@@ -157,7 +161,7 @@ export abstract class Interaction extends Core {
             return;
         }
 
-        if (this.onCurrentSelect()) {
+        if (this.onCurrentSelect(e)) {
             return;
         }
     }
@@ -230,7 +234,7 @@ export abstract class Interaction extends Core {
         return true;
     }
 
-    private onCurrentSet(intersects: THREE.Intersection<THREE.Object3D>[]): boolean {
+    private onCurrentSet(intersects: THREE.Intersection<THREE.Object3D>[], e: MouseEvent): boolean {
         if (intersects.length === 0) {
             return false;
         }
@@ -239,7 +243,11 @@ export abstract class Interaction extends Core {
         const uuid = object.parent ? object.parent.uuid : object.uuid;
 
         if (this.current !== null && this.current.uuid !== uuid) {
-            this.current.deselect();
+            if (MouseHelper.isSelectionInteract(e)) {
+                this.pushSelection(this.current);
+            } else if (this.selection.length === 0) {
+                this.current.deselect();
+            }
         }
 
         this.current = this.elements[uuid] ?? null;
@@ -251,6 +259,11 @@ export abstract class Interaction extends Core {
         if (intersects.length !== 0 || this.current === null) {
             return false;
         }
+
+        this.selection.forEach((e: IElement) => {
+           e.deselect();
+        });
+        this.selection = [];
 
         this.current.deselect();
         this.current = null;
@@ -319,6 +332,13 @@ export abstract class Interaction extends Core {
 
         this.container.classList.add('moving');
 
+        if (!this.inSelection(this.current)) {
+            this.selection.forEach((e: IElement) => {
+                e.deselect();
+            });
+            this.selection = [];
+        }
+
         return true;
     }
 
@@ -327,10 +347,19 @@ export abstract class Interaction extends Core {
             return false;
         }
 
-        this.current.move(
-            this.current.x + (e.pageX - this.offset.x) / this.zoom,
-            this.current.y - (e.pageY - this.offset.y) / this.zoom,
-        );
+        if (this.selection.length === 0) {
+            this.current.move(
+                this.current.x + (e.pageX - this.offset.x) / this.zoom,
+                this.current.y - (e.pageY - this.offset.y) / this.zoom,
+            );
+        } else {
+            this.selection.forEach((elem: IElement) => {
+                elem.move(
+                    elem.x + (e.pageX - this.offset.x) / this.zoom,
+                    elem.y - (e.pageY - this.offset.y) / this.zoom,
+                );
+            });
+        }
 
         this.offset.x = e.pageX;
         this.offset.y = e.pageY;
@@ -343,21 +372,43 @@ export abstract class Interaction extends Core {
             return false
         }
 
-        const point = MathHelper.alignPointToGrid({
-            x: this.current.x,
-            y: this.current.y,
-        });
+        if (this.selection.length === 0) {
+            const point = MathHelper.alignPointToGrid({
+                x: this.current.x,
+                y: this.current.y,
+            });
 
-        this.current.move(point.x, point.y);
+            this.current.move(point.x, point.y);
+        } else {
+            this.selection.forEach((elem: IElement) => {
+                const point = MathHelper.alignPointToGrid({
+                    x: elem.x,
+                    y: elem.y,
+                });
+
+                elem.move(point.x, point.y);
+            });
+        }
 
         this.draggable = false;
 
         return true;
     }
 
-    private onCurrentSelect(): boolean {
+    private onCurrentSelect(e: MouseEvent): boolean {
         if (this.current === null) {
             return false;
+        }
+
+        if (MouseHelper.isSelectionInteract(e) && this.inSelection(this.current)) {
+            this.current.deselect();
+            this.detachSelection(this.current);
+
+            return true;
+        }
+
+        if (MouseHelper.isSelectionInteract(e)) {
+            this.pushSelection(this.current);
         }
 
         this.current.select();
@@ -373,6 +424,29 @@ export abstract class Interaction extends Core {
         this.current.over(intersects);
 
         return true;
+    }
+
+    private inSelection(element: IElement): boolean {
+        if (this.selection.length === 0) {
+            return false;
+        }
+
+        return this.selection.some((e: IElement) => { return e.uuid === element.uuid });
+    }
+
+
+    private pushSelection(element: IElement): void {
+        if (this.inSelection(element)) {
+            return;
+        }
+
+        this.selection.push(element);
+    }
+
+    private detachSelection(element: IElement): void {
+        this.selection = this.selection.filter((e: IElement) => {
+            return e.uuid !== element.uuid;
+        });
     }
 
     protected onZoom(zoom: number): void {

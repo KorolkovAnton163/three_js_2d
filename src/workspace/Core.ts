@@ -15,8 +15,6 @@ export abstract class Core {
 
     protected elements: Record<string, IElement> = {};
 
-    protected current: IElement | null = null;
-
     constructor(container: HTMLElement) {
         this.container = container;
 

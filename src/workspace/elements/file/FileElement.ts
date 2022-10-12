@@ -1,9 +1,10 @@
 import { Element } from "../Element";
+import { Font } from "three/examples/jsm/loaders/FontLoader";
 import FileElementInterface from "../../_shims/models/file";
 
 export class FileElement extends Element {
-    constructor(element: FileElementInterface) {
-        super(element);
+    constructor(element: FileElementInterface, font: Font) {
+        super(element, font);
 
         this.aspectRation = true;
 

@@ -4,11 +4,32 @@ import ElementInterface, {ElementType} from "./_shims/models/_element";
 import FileElementInterface from "./_shims/models/file";
 import FileElementData from "./_shims/models/data/file";
 import ElementHelper from "./helpers/ElementHelper";
+import NoteElementInterface from "./_shims/models/note";
+import NoteElementData from "./_shims/models/data/note";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 
 export class Workspace extends Interaction {
     private background = '#eeeedd'
 
-    private interfaces: ElementInterface[] = [{
+    private interfaces: ElementInterface[] = [
+        {
+            uuid: '',
+            component: ElementType.note,
+            w: 240,
+            h: 240,
+            x: 160,
+            y: -280,
+            index: 0,
+            group: null,
+            tag: {
+                color: null,
+                text: null,
+            },
+            data: {
+                delta: {},
+            } as NoteElementData,
+        } as NoteElementInterface,
+        {
         uuid: '',
         component: ElementType.file,
         w: 240,
@@ -55,8 +76,12 @@ export class Workspace extends Interaction {
     public async run(): Promise<void> {
         await super.run();
 
+        const loader = new FontLoader();
+
+        const font = await loader.loadAsync('/assets/fonts/helvetiker_regular.typeface.json');
+
         this.interfaces.forEach((element: ElementInterface) => {
-            const elem = ElementHelper.CreateElement(element);
+            const elem = ElementHelper.CreateElement(element, font);
 
             this.elements[elem.uuid] = elem;
 

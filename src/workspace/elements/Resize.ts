@@ -17,13 +17,16 @@ export class Resize {
 
     private path = '/assets/icons/resize.svg';
 
+    private parent: string;
+
     public get object(): THREE.Group {
         return this.group;
     }
 
-    constructor(position: ResizePosition, size: { w: number; h: number }) {
+    constructor(position: ResizePosition, size: { w: number; h: number }, parent: string) {
         this.position = position;
         this.size = size;
+        this.parent = parent;
 
         const shape = new THREE.Shape([
             new THREE.Vector2(0, 0),
@@ -41,7 +44,8 @@ export class Resize {
 
         mesh.name = this.NAME;
         mesh.userData = {
-            position: this.position
+            position: this.position,
+            parent: this.parent,
         };
 
         this.group = new THREE.Group();
@@ -114,7 +118,8 @@ export class Resize {
 
                     mesh.name = this.NAME;
                     mesh.userData = {
-                        position: this.position
+                        position: this.position,
+                        parent: this.parent,
                     };
 
                     this.setSvgRotation(mesh);

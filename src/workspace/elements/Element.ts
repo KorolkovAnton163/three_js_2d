@@ -2,12 +2,15 @@ import * as THREE from 'three';
 import { IElement, ResizePosition } from "../_shims/element";
 import { ShaderGeometry } from './ShaderGeometry';
 import { Resize } from "./Resize";
+import { Font } from "three/examples/jsm/loaders/FontLoader";
 import ElementInterface from "../_shims/models/_element";
 
 export class Element implements IElement {
     public uuid: string;
 
     protected element: ElementInterface;
+
+    protected font: Font;
 
     protected selected = false;
 
@@ -50,8 +53,9 @@ export class Element implements IElement {
         return this.element.h;
     }
 
-    constructor(element: ElementInterface) {
+    constructor(element: ElementInterface, font: Font) {
         this.element = element;
+        this.font = font;
 
         this.geometry = new ShaderGeometry(this.element.w, this.element.h);
 
@@ -72,10 +76,10 @@ export class Element implements IElement {
 
         if (this.resizes === null) {
             this.resizes = {
-                [ResizePosition.topLeft]: new Resize(ResizePosition.topLeft, { w: this.w, h: this.h }),
-                [ResizePosition.topRight]: new Resize(ResizePosition.topRight, { w: this.w, h: this.h }),
-                [ResizePosition.bottomLeft]: new Resize(ResizePosition.bottomLeft, { w: this.w, h: this.h }),
-                [ResizePosition.bottomRight]: new Resize(ResizePosition.bottomRight, { w: this.w, h: this.h }),
+                [ResizePosition.topLeft]: new Resize(ResizePosition.topLeft, { w: this.w, h: this.h }, this.uuid),
+                [ResizePosition.topRight]: new Resize(ResizePosition.topRight, { w: this.w, h: this.h }, this.uuid),
+                [ResizePosition.bottomLeft]: new Resize(ResizePosition.bottomLeft, { w: this.w, h: this.h }, this.uuid),
+                [ResizePosition.bottomRight]: new Resize(ResizePosition.bottomRight, { w: this.w, h: this.h }, this.uuid),
             };
 
             Object.values(this.resizes).forEach((r: Resize) => {
@@ -194,9 +198,12 @@ export class Element implements IElement {
     }
 
     private resizeAspectRationFree(x: number, y: number, position: ResizePosition): { w: number, h: number, x: number; y: number } {
+        const width = this.w + x > this.min.w ? this.w + x : this.min.w;
+        const height = this.h + y > this.min.h ? this.h + y : this.min.h;
+
         return {
-            w: this.w,
-            h: this.h,
+            w: width,
+            h: height,
             x: this.x,
             y: this.y,
         }
